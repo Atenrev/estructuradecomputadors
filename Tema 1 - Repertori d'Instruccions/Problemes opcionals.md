@@ -122,11 +122,11 @@ BUCLE_k:
  			POP ESI
  			MOV ____EDX____, B[EBX]
  			; Multiplicar A * B
- 			MUL EDX, ____EAX____
+ 			MUL EDX ; Aquesta instrucció multiplica EDX a EAX, guardant el resultat en aquest últim
  			; Recuperem la posició inicial
  			MOV EBX, [Posi]
  			; Sumar C + (A*B)
-			ADD C[EBX], ____EDX_____
+			ADD C[EBX], ____EAX_____
  			INC ECX
 			JMP BUCLE_k
 FI_k: 		
@@ -141,7 +141,7 @@ FI_i:
 Calc_Index: 
 			PUSH EAX
  			MOV EBX, ESI
- 			SHL EBX, 4
+ 			SHL EBX, 4 ; 4 bytes * 4 files
  			MOV EAX,EDI
  			SHL EAX, 2
  			ADD EBX, EAX
@@ -197,6 +197,8 @@ Calc_Index:
 | Op Ri, Rj, Rk      | Op(6) + Reg(6) +Reg(6) +Reg(6) | 24          |
 
 ### b) A = (E * (B-C)) / ( E-D)
+
+* Els accessos a instruccions i dades van en funció del bus de bits (en aquest cas 16 bits) i del tamany de la instrucció (32 bits) o de la longitud dels operands (32 bits també).
 
 #### Arquitectura 1
 
