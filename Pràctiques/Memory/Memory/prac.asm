@@ -289,26 +289,41 @@ moveCursorP1 proc
    CMP AL, 108
    JE DRETA
 
+   JMP FI
 
    AMUNT:
    MOV EBX, [row]
-   INC EBX
-   CMP EBX, 4
-   JG FI
+   DEC EBX
+   CMP EBX, 1
+   JL FI
+   MOV [row], EBX
    JMP MOURE
 
    ESQUERRA:
-
+   XOR EBX, EBX
+   MOV BL, [col]
+   DEC EBX
+   CMP EBX, 65
+   JL FI
+   MOV [col], BL
+   JMP MOURE
 
    AVALL:
    MOV EBX, [row]
    INC EBX
-   CMP EBX, 1
-   JL FI
+   CMP EBX, 4
+   JG FI
+   MOV [row], EBX
    JMP MOURE
 
    DRETA:
-
+   XOR EBX, EBX
+   MOV BL, [col]
+   INC EBX
+   CMP EBX, 68
+   JG FI
+   MOV [col], BL
+   JMP MOURE
 
    MOURE:
    CALL posCurScreenP1
@@ -338,9 +353,21 @@ moveCursorP1 endp
 movContinuoP1 proc
 	push ebp
 	mov  ebp, esp
+	PUSH EAX
 
+	BUCLE:
+	CALL getMoveP1
+	MOV AL, [carac2]
+	CMP AL, 115
+	JE FI
+	; Temporal perquè en el codi C executa primer aquest i després l'OpenP1
+	CMP AL, 32
+	JE FI
+	CALL moveCursorP1
+	JMP BUCLE
 
-
+	FI:
+	POP EAX
 	mov esp, ebp
 	pop ebp
 	ret
@@ -365,9 +392,23 @@ movContinuoP1 endp
 calcIndexP1 proc
 	push ebp
 	mov  ebp, esp
-	
+	PUSH EAX
+	PUSH EBX
 
+	; rowScreen
+	MOV EAX, [row]
+	DEC EAX
+	SHL EAX, 2
+	; colScreen
+	XOR EBX, EBX
+	MOV BL, [col]
+	SUB EBX, 65
 
+	ADD EAX, EBX
+	MOV [indexMat], EAX
+
+	POP EBX
+	POP EAX
 	mov esp, ebp
 	pop ebp
 	ret
@@ -425,9 +466,18 @@ calcIndexP1 endp
 openP1 proc
 	push ebp
 	mov  ebp, esp
+	PUSH EAX
+	PUSH EBX
 
+	CALL calcIndexP1
+	MOV EBX, [indexMat]
+	XOR EAX, EAX
+	MOV AL, [gameCards + EBX]
+	MOV [carac], AL
+	CALL printch
 
-
+	POP EBX
+	POP EAX
 	mov esp, ebp
 	pop ebp
 	ret
