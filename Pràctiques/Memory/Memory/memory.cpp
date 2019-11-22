@@ -220,8 +220,8 @@ int main(void)
 			gotoxy_C(RowScreenIni + (DimMatrix * 2), ColScreenIni);
 			printf("Press any key ");
 
-			row = 2;
-			col = 'C';
+			/*row = 2;
+			col = 'C';*/
 			posCurScreenP1();	//Posicionar el cursor a pantalla.
 
 

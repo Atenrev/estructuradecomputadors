@@ -360,7 +360,6 @@ movContinuoP1 proc
 	MOV AL, [carac2]
 	CMP AL, 115
 	JE FI
-	; Temporal perquè en el codi C executa primer aquest i després l'OpenP1
 	CMP AL, 32
 	JE FI
 	CALL moveCursorP1
@@ -468,14 +467,79 @@ openP1 proc
 	mov  ebp, esp
 	PUSH EAX
 	PUSH EBX
+	PUSH ECX
 
 	CALL calcIndexP1
 	MOV EBX, [indexMat]
 	XOR EAX, EAX
 	MOV AL, [gameCards + EBX]
+
+	MOV ECX, [cardTurn]
+	CMP ECX, 0
+	JE PRIMERA
+
+	SEGONA:
+	MOV [cardTurn], 0
+	; Restem un intent
+	MOV ECX, [totalTries]
+	DEC ECX
+	MOV [totalTries], ECX
+	; Comprovem si són iguals
+	MOV EBX, [firstVal]
+	CMP EAX, EBX
+	JE CORRECTE
+	MOV [carac], AL
+	CALL printch
+	CALL getMoveP1
+	; Buidem la casella actual
+	MOV [carac], 32
+	CALL posCurScreenP1
+	CALL printch
+	; Guardem les posicions actuals
+	MOV ECX, [row]
+	PUSH ECX
+	XOR ECX, ECX
+	MOV CL, [col]
+	PUSH ECX
+	; Buidem la casella restant
+	MOV ECX, [firstRow]
+	MOV [row], ECX
+	XOR ECX, ECX
+	MOV CL, [firstCol]
+	MOV [col], CL
+	CALL posCurScreenP1
+	CALL printch
+	; Restaurem posicions
+	XOR ECX, ECX
+	POP ECX
+	MOV [col], CL
+	POP ECX
+	MOV [row], ECX
+	CALL posCurScreenP1
+	JMP FI
+
+	PRIMERA:
+	MOV [cardTurn], 1
+	MOV ECX, [row]
+	MOV [firstRow], ECX
+	XOR ECX, ECX
+	MOV CL, [col]
+	MOV [firstCol], CL
+	MOV [firstVal], EAX
+	JMP DEFAULT
+
+	CORRECTE:
+	MOV ECX, [totalPairs]
+	DEC ECX
+	MOV [totalPairs], ECX
+
+	DEFAULT:
 	MOV [carac], AL
 	CALL printch
 
+	FI:
+	CALL updateScore
+	POP ECX
 	POP EBX
 	POP EAX
 	mov esp, ebp
@@ -508,9 +572,20 @@ openP1 endp
 openContinuousP1 proc
 	push ebp
 	mov  ebp, esp
+	PUSH EAX
 
+	MOV [cardTurn], 0
+	BUCLE:
+	CALL movContinuoP1
+	XOR EAX, EAX
+	MOV AL, [carac2]
+	CMP AL, 115
+	JE FI 
+	CALL openP1
+	JMP BUCLE
 
-
+	FI:
+	POP EAX
 	mov esp, ebp
 	pop ebp
 	ret
@@ -537,9 +612,38 @@ openContinuousP1 endp
 updateScore proc
 	push ebp
 	mov  ebp, esp
+	PUSH EAX
+	PUSH EBX
+	PUSH ECX
 
+	MOV EBX, [row]
+	XOR ECX, ECX
+	MOV CL, [col]
 
+	MOV [col], 'B'
+	MOV [row], -1
+	CALL posCurScreenP1
+	MOV EAX, [totalPairs]
+	ADD EAX, 48
+	MOV [carac], AL
+	CALL printch
+	MOV [col], 'E'
+	MOV [row], -1
+	CALL posCurScreenP1
+	MOV EAX, [totalTries]
+	ADD EAX, 48
+	MOV [carac], AL
+	CALL printch
 
+	MOV [row], EBX
+	MOV [col], CL
+	CALL posCurScreenP1
+	
+
+	FI:
+	POP ECX
+	POP EBX
+	POP EAX
 	mov esp, ebp
 	pop ebp
 	ret

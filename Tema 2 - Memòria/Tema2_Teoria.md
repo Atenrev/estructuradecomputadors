@@ -62,8 +62,8 @@ El bus de dades només té un 1 bit, per tant, haurien d'haver 8 xips si es vulg
 
 Aquests xips tenen un decodificador, al qual li entren 5 bits, que selecciona la fila; i un altre igual que selecciona la columna.
 
-RAS (Row Access Site): Senyal que indica l'activació la fila del xip
-CAS (Column Access Site): Senyal que indica l'activació la columna del xip
+RAS (Row Access Site): Senyal que indica l'activació de la fila del xip
+CAS (Column Access Site): Senyal que indica l'activació de la columna del xip
 
-Llavors, al multiplexor se li passa la senyal fila/!col per deixar passar les línies de fila o de columna.
+Llavors, al multiplexor se li passa el senyal fila/!col per deixar passar les línies de fila o de columna.
 
