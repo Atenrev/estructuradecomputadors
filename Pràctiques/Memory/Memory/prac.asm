@@ -473,23 +473,26 @@ openP1 proc
 	MOV EBX, [indexMat]
 	XOR EAX, EAX
 	MOV AL, [gameCards + EBX]
+	CMP [tauler + EBX], 32
+	JNE FI
 
 	MOV ECX, [cardTurn]
 	CMP ECX, 0
 	JE PRIMERA
 
 	SEGONA:
-	MOV [cardTurn], 0
-	; Restem un intent
-	MOV ECX, [totalTries]
-	DEC ECX
-	MOV [totalTries], ECX
 	; Comprovem si són iguals
 	MOV EBX, [firstVal]
 	CMP EAX, EBX
 	JE CORRECTE
+
+	INCORRECTE:
+	MOV ECX, [totalTries]
+	DEC ECX
+	MOV [totalTries], ECX
 	MOV [carac], AL
 	CALL printch
+	CALL posCurScreenP1
 	CALL getMoveP1
 	; Buidem la casella actual
 	MOV [carac], 32
@@ -516,7 +519,13 @@ openP1 proc
 	POP ECX
 	MOV [row], ECX
 	CALL posCurScreenP1
-	JMP FI
+	JMP UPDATE
+
+	CORRECTE:
+	MOV ECX, [totalPairs]
+	DEC ECX
+	MOV [totalPairs], ECX
+	JMP DEFAULT
 
 	PRIMERA:
 	MOV [cardTurn], 1
@@ -526,19 +535,14 @@ openP1 proc
 	MOV CL, [col]
 	MOV [firstCol], CL
 	MOV [firstVal], EAX
-	JMP DEFAULT
-
-	CORRECTE:
-	MOV ECX, [totalPairs]
-	DEC ECX
-	MOV [totalPairs], ECX
 
 	DEFAULT:
 	MOV [carac], AL
 	CALL printch
 
-	FI:
+	UPDATE:
 	CALL updateScore
+	FI:
 	POP ECX
 	POP EBX
 	POP EAX
@@ -574,9 +578,19 @@ openContinuousP1 proc
 	mov  ebp, esp
 	PUSH EAX
 
+	CALL setupBoard
 	MOV [cardTurn], 0
 	BUCLE:
+	; Victòria
+	MOV EAX, [totalPairs]
+	CMP EAX, 0
+	JLE FI
+	; Derrota
+	MOV EAX, [totalTries]
+	CMP EAX, 0
+	JLE FI
 	CALL movContinuoP1
+	; Sortir del joc
 	XOR EAX, EAX
 	MOV AL, [carac2]
 	CMP AL, 115
@@ -675,9 +689,47 @@ updateScore endp
 setupBoard proc
 	push ebp
 	mov  ebp, esp
+	PUSH EAX
+	PUSH EBX
+	PUSH ECX
+	PUSH EDX
 
+	MOV ESI, 0
+	BUCLE_ROW:
+	CMP ESI, 4
+	JGE END_ROW
 
+	MOV EDI, 0
 
+	BUCLE_COL:
+	; Calcular índex
+	CMP EDI, 4
+	JGE END_COL
+
+	; Calculem l'índex
+	MOV EBX, ESI
+	SHL EBX, 2
+	ADD EBX, EDI
+	; Generem el caràcter aleatori
+	CALL rand
+	MOV EDX, 0
+	MOV ECX, 15
+	DIV ECX
+	MOV CL, [cards+EDX]
+	MOV [gameCards+EBX], CL
+
+	INC EDI
+	JMP BUCLE_COL
+	END_COL:
+
+	INC ESI
+	JMP BUCLE_ROW
+	END_ROW:
+
+	POP EDX
+	POP ECX
+	POP EBX
+	POP EAX
 	mov esp, ebp
 	pop ebp
 	ret
