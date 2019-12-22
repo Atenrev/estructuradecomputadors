@@ -468,6 +468,7 @@ openP1 proc
 	PUSH EAX
 	PUSH EBX
 	PUSH ECX
+	PUSH EDX
 
 	CALL calcIndexP1
 	MOV EBX, [indexMat]
@@ -482,13 +483,15 @@ openP1 proc
 
 	SEGONA:
 	; Comprovem si són iguals
-	MOV EBX, [firstVal]
-	CMP EAX, EBX
+	MOV [cardTurn], 0
+	MOV EDX, [firstVal]
+	CMP EAX, EDX
 	JE CORRECTE
 
 	INCORRECTE:
 	MOV ECX, [totalTries]
 	DEC ECX
+	; Pintem la carta aixecada
 	MOV [totalTries], ECX
 	MOV [carac], AL
 	CALL printch
@@ -512,6 +515,9 @@ openP1 proc
 	MOV [col], CL
 	CALL posCurScreenP1
 	CALL printch
+	CALL calcIndexP1
+	MOV EBX, [indexMat]
+	MOV [tauler + EBX], 32
 	; Restaurem posicions
 	XOR ECX, ECX
 	POP ECX
@@ -539,10 +545,12 @@ openP1 proc
 	DEFAULT:
 	MOV [carac], AL
 	CALL printch
+	MOV [tauler + EBX], AL
 
 	UPDATE:
 	CALL updateScore
 	FI:
+	POP EDX
 	POP ECX
 	POP EBX
 	POP EAX
@@ -578,7 +586,6 @@ openContinuousP1 proc
 	mov  ebp, esp
 	PUSH EAX
 
-	CALL setupBoard
 	MOV [cardTurn], 0
 	BUCLE:
 	; Victòria
@@ -694,6 +701,27 @@ setupBoard proc
 	PUSH ECX
 	PUSH EDX
 
+	; SHUFFLE
+	XOR EBX, EBX
+	MOV ESI, 0
+	BUCLE_RAND:
+
+	CALL rand
+	MOV EDX, 0
+	MOV ECX, 7
+	DIV ECX
+	ADD EDX, 8
+	XOR EAX, EAX
+	MOV AL, [cards+ESI]
+	MOV BL, [cards+EDX]
+	MOV [cards+EDX], AL
+	MOV [cards+ESI], BL
+
+	INC ESI
+	CMP ESI, 8
+	JL BUCLE_RAND
+
+	; Inicialització
 	MOV ESI, 0
 	BUCLE_ROW:
 	CMP ESI, 4
@@ -710,12 +738,8 @@ setupBoard proc
 	MOV EBX, ESI
 	SHL EBX, 2
 	ADD EBX, EDI
-	; Generem el caràcter aleatori
-	CALL rand
-	MOV EDX, 0
-	MOV ECX, 15
-	DIV ECX
-	MOV CL, [cards+EDX]
+	; Assignem
+	MOV CL, [cards+EBX]
 	MOV [gameCards+EBX], CL
 
 	INC EDI
